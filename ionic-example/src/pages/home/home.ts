@@ -6,8 +6,6 @@ import { Author } from '../../entities/author';
 import { Category } from '../../entities/category';
 import { Post } from '../../entities/post';
 
-import { Socket } from 'ngx-socket-io';
-
 @Component({
   selector: 'page-home',
   templateUrl: 'home.html'
@@ -16,14 +14,14 @@ export class HomePage {
   private savedPost: boolean = false;
   private loadedPost: Post = null;
 
-  constructor(public navCtrl: NavController, private socket: Socket,) { }
+  constructor(public navCtrl: NavController) { }
 
   ionViewDidLoad() {
     this.runDemo();
   }
 
   ionViewWillLeave() {
-    this.socket.disconnect();
+
   }
 
   async runDemo() {
@@ -57,9 +55,33 @@ export class HomePage {
     console.log("Post has been loaded: ", loadedPost);
     this.loadedPost = loadedPost;
 
-    this.socket.connect();
-    this.socket.emit('set-name', "WS_ionic");
-    this.socket.emit('send-message', { text: "message from ionic" });
+    // WS
+
+    var ws = new WebSocket('ws://localhost:3000');
+
+    ws.onopen = function () {
+        console.log('open');
+        alert("open socket")
+        this.send('hello');         // transmit "hello" after connecting        
+    };
+
+    ws.onmessage = function (event) {
+        console.log(event.data);    // will be "hello"
+        this.close();
+    };
+
+    ws.onerror = function (event) {
+        alert(JSON.stringify(event))
+        console.log('error occurred!');
+    };
+
+    ws.onclose = function (event) {
+        //alert('close code=' + event.code) // 1006
+        console.log('close code=' + event.code);
+    };
+
+    
+
   }
 
   getCategories() {
@@ -71,3 +93,92 @@ export class HomePage {
   }
 
 }
+
+/*
+
+Wrapper Example
+
+var app = angular.module('<your_app>', [
+    'ionic',
+    ...,
+    'ngWebSocket']); //injection
+app.factory('$appWs', ['$log', '$websocket', function($log, $websocket) {
+    // private
+    var closedByUser = false;
+    var listeners = {};
+    var opened = false;
+    var ws;
+    function startListeners() {
+        ws.onClose(function() {
+            opened = false;
+            if(!closedByUser) {
+                appWs.init();
+            }
+        });
+        ws.onError(function(err) {
+            $log.error(angular.toJson(err));
+            ws.close();
+        });
+        ws.onMessage(function(message) {
+            var msg = angular.fromJson(message.data); // JSON is returned from WS Server in the format {code:'string', data:{}}
+            appWs.pingListener(msg.code, msg.data); // To activate the necessary handler for the message
+        });
+        ws.onOpen(function() {
+            opened = true;
+            if(listeners['webSocketOpened']) {
+                appWs.removeListener('webSocketOpened'); // To notify my app when my WS is opened
+            }
+        });
+    };
+    //public
+    var appWs = {};
+    appWs.addListener = function(code, deferred) {
+        listeners[code] = deferred;
+    };
+    appWs.close = function() {
+        closedByUser = true;
+        ws.close();
+    };
+    appWs.init = function() {
+        ws = $websocket('ws://localhost:8080');
+        startListeners();
+    };
+    appWs.isOpen = function() {
+        return opened;
+    };
+    appWs.pingListener = function(code, msg) {
+        if(listeners[code]) {
+            listeners[code].notify(msg);
+        }
+    };
+    appWs.removeListener = function(code) {
+        listeners[code].resolve('Listener ' + code + ' terminated successfully');
+        delete listeners[code];
+    };
+    appWs.send = ws.send;
+    return appWs;
+}]);
+app.controller('AppCtrl', function ContentController($scope, $ionicPlatform, $q, $appWs) {
+    function handleNewMessages() {
+         var q = $q.defer();
+         q.promise.then(function(result) {
+              // Executes on ws.removeListener()
+         }, function(error) {
+              // Executes when rejection of promise;
+         }, function(message) {
+              // Executes on pingListener()
+              // This is where we put logic to add messages to our view
+         });
+         $appWs.addListener('newMessage', q);
+    }
+    var deferred = $q.defer();
+    deferred.promise.then(function() {
+        handleNewMessages();
+    });
+    $appWs.addListener('webSocketOpened', deferred);
+    $ionicPlatform.ready(function() {
+        $appWs.init();
+    });
+});
+
+*/
