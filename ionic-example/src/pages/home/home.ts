@@ -6,6 +6,8 @@ import { Author } from '../../entities/author';
 import { Category } from '../../entities/category';
 import { Post } from '../../entities/post';
 
+import { Socket } from 'ngx-socket-io';
+
 @Component({
   selector: 'page-home',
   templateUrl: 'home.html'
@@ -14,10 +16,14 @@ export class HomePage {
   private savedPost: boolean = false;
   private loadedPost: Post = null;
 
-  constructor(public navCtrl: NavController) { }
+  constructor(public navCtrl: NavController, private socket: Socket,) { }
 
   ionViewDidLoad() {
     this.runDemo();
+  }
+
+  ionViewWillLeave() {
+    this.socket.disconnect();
   }
 
   async runDemo() {
@@ -50,6 +56,10 @@ export class HomePage {
 
     console.log("Post has been loaded: ", loadedPost);
     this.loadedPost = loadedPost;
+
+    this.socket.connect();
+    this.socket.emit('set-name', "WS_ionic");
+    this.socket.emit('send-message', { text: "message from ionic" });
   }
 
   getCategories() {
