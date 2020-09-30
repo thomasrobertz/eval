@@ -1,0 +1,63 @@
+Fixing problems / Step instructions on Windows 10 from older ionic typeorm github sample at https://github.com/typeorm/ionic-example
+
+https://stackoverflow.com/questions/63720450/node-modules-types-node-index-d-ts20-1-error-ts1084-invalid-reference-dir
+
+
+Q error
+---------------
+
+https://stackoverflow.com/questions/55302204/cordova-failed-q-is-not-supported
+
+ionic cordova platform rm ios
+ionic cordova platform rm android
+ionic cordova plugin rm cordova-sqlite-storage
+npm i cordova-sqlite-storage@latest
+ionic cordova plugin add cordova-sqlite-storage
+ionic cordova platform add ios
+ionic cordova platform add android
+
+Add Android Env vars:
+---------------
+
+export ANDROID_SDK_ROOT=$HOME/Library/Android/sdk
+
+# avdmanager, sdkmanager
+export PATH=$PATH:$ANDROID_SDK_ROOT/tools/bin
+
+# adb, logcat
+export PATH=$PATH:$ANDROID_SDK_ROOT/platform-tools
+
+# emulator
+export PATH=$PATH:$ANDROID_SDK_ROOT/emulator
+
+
+"Failed to install the following Android SDK packages as some licences have not been accepted” error:
+---------------
+
+Run:
+sdkmanager --licenses
+
+
+Best for detection is to start AVD device before running "ionic cordova run android -l"
+---------------
+
+
+uses-sdk:minSdkVersion 15 cannot be smaller than version 16 declared in library:
+---------------
+
+In config.xml, change
+
+<preference name="android-minSdkVersion" value="15" />
+
+to f.i.:
+<preference name="android-minSdkVersion" value="22" />
+
+
+WebView showing ERR_CLEARTEXT_NOT_PERMITTED 
+---------------
+
+https://forum.ionicframework.com/t/livereload-err-cleartext-not-permitted/163487/17
+
+Quick workaround, run:
+
+ionic cordova run android --l --ssl --debug

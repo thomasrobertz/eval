@@ -10,6 +10,8 @@ import { Author } from '../entities/author';
 import { Category } from '../entities/category';
 import { Post } from '../entities/post';
 
+import { MyCustomLogger } from './logger/Logger';
+
 @Component({
   templateUrl: 'app.html'
 })
@@ -23,15 +25,19 @@ export class MyApp {
       statusBar.styleDefault();
       splashScreen.hide();
 
+      //https://github.com/storesafe/cordova-sqlite-storage#warning-multiple-sqlite-problem-on-multiple-platforms  
+
       // Depending on the machine the app is running on, configure
       // different database connections
       if(platform.is('cordova')) {
         // Running on device or emulator
         await createConnection({
           type: 'cordova',
-          database: 'test',
+          database: 'test-wr5834796.sqlite',
           location: 'default',
           logging: ['error', 'query', 'schema'],
+          //logger: "advanced-console",
+          logger: new MyCustomLogger(),
           synchronize: true,
           entities: [
             Author,
